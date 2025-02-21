@@ -40,6 +40,20 @@ wheels = [
 ]
 
 [[package]]
+name = "boto3-stubs"
+version = "1.36.26"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "botocore-stubs" },
+    { name = "types-s3transfer" },
+    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/9f/f8/c182ed895b89ec55fb89e56dc79805ba94f5c8399e5de8f6122dc9008cad/boto3_stubs-1.36.26.tar.gz", hash = "sha256:4d9cfbe7c6b55dac5d4509a2e44df1263be9a684c7723d297baffb5f579098a1", size = 98618 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b1/7c/ee4948664623be3450d68d237ba629948cc1faaa61edbefa9fabf6918d49/boto3_stubs-1.36.26-py3-none-any.whl", hash = "sha256:ebeb4537c2cebf591ed003b0004db2ec8400718f404ac19ce070844b009633e5", size = 68255 },
+]
+
+[[package]]
 name = "botocore"
 version = "1.36.25"
 source = { registry = "https://pypi.org/simple" }
@@ -51,6 +65,18 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/17/e7/3d93e2b5be18486a9c14fc3fda1597c5f3835a9766eb7f2ba9f144fca73f/botocore-1.36.25.tar.gz", hash = "sha256:3b0a857d2621c336fb82a36cb6da4b6e062d346451ac46d110b074e5e5fd7cfc", size = 13573787 }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/b5/e9/107e5ab6b0b02c3d766a850238741c02723ae249dcfe76c72b9c76d7b67b/botocore-1.36.25-py3-none-any.whl", hash = "sha256:04c8ff03531e8d92baa8c98d1850bdf01668a805467f4222b65e5325f94aa8af", size = 13360625 },
+]
+
+[[package]]
+name = "botocore-stubs"
+version = "1.36.25"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "types-awscrt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/50/ac/fdd6db28a6c0b1651b6d1ebb6eed187636eae1e18cac5f432dc901760a33/botocore_stubs-1.36.25.tar.gz", hash = "sha256:89a6eda494497b01f9e0420b4e1e440d71e40c5f37ed62a6c59038fbfc6f2c49", size = 41282 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/69/90/4b4d6d19314a768a1fb6b4b26a046bffa97ef18bc3dbf7fe656ba044f717/botocore_stubs-1.36.25-py3-none-any.whl", hash = "sha256:caf92497433c82166666f034533b39ded32ab7b180b7fedfbf9cf34d2d8521f7", size = 64107 },
 ]
 
 [[package]]
@@ -872,6 +898,24 @@ wheels = [
 ]
 
 [[package]]
+name = "types-awscrt"
+version = "0.23.10"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/a3/53/7c69677327794fe91cc89a1362400b78f00b1a20364384da1e004c259d42/types_awscrt-0.23.10.tar.gz", hash = "sha256:965659260599b421564204b895467684104a2c0311bbacfd3c2423b8b0d3f3e9", size = 15455 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/89/ad/3d7c9a8b972048f3987355e3e48da56eb9f3ed8e151113c3c973b43ad91e/types_awscrt-0.23.10-py3-none-any.whl", hash = "sha256:7391bf502f6093221e68da8fb6a2af7ec67a98d376c58d5b76cc3938f449d121", size = 19426 },
+]
+
+[[package]]
+name = "types-s3transfer"
+version = "0.11.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/56/a9/21967d4fc03bb7980b7af040642d67c4f1e5bf093dc7ff263d4f06020043/types_s3transfer-0.11.2.tar.gz", hash = "sha256:3ccb8b90b14434af2fb0d6c08500596d93f3a83fb804a2bb843d9bf4f7c2ca60", size = 14054 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/17/12/0256488171e2947b20364638779891db45bf25af14e9a6bde50b2df65cd6/types_s3transfer-0.11.2-py3-none-any.whl", hash = "sha256:09c31cff8c79a433fcf703b840b66d1f694a6c70c410ef52015dd4fe07ee0ae2", size = 19486 },
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.12.2"
 source = { registry = "https://pypi.org/simple" }
@@ -1109,6 +1153,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "boto3-stubs" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "ruff" },
@@ -1124,6 +1169,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "boto3-stubs", specifier = ">=1.36.26" },
     { name = "mypy", specifier = ">=1.15.0" },
     { name = "pre-commit", specifier = ">=4.1.0" },
     { name = "ruff", specifier = ">=0.9.7" },
