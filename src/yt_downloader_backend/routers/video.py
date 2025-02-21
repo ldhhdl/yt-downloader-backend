@@ -1,21 +1,75 @@
-from fastapi import APIRouter
+from typing import Annotated
+from urllib.parse import parse_qs, urlparse
 
-from yt_downloader_backend.api_models import DownloadVideoRequest
+import botocore
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import StreamingResponse
+
+from yt_downloader_backend import clients
+from yt_downloader_backend.api_models import DownloadVideoRequest, VideoItem
+from yt_downloader_backend.config import Settings, get_settings
 
 
 def get_router() -> APIRouter:
     router = APIRouter()
 
-    @router.post("/video")
-    async def download_video(request: DownloadVideoRequest) -> None:
-        raise NotImplementedError("finish this")
+    @router.post("/video", status_code=201)
+    async def download_video(
+        request: DownloadVideoRequest,
+        settings: Annotated[Settings, Depends(get_settings)],
+    ) -> None:
+        video_code = parse_qs(urlparse(request.url).query).get("v", [""])[0]
+        if not video_code:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid URL"
+            )
+
+        dynamodb_client = clients.get_dynamodb_client()
+        response = dynamodb_client.query(
+            TableName=settings.table_name,
+            KeyConditionExpression="video_code = :video_code",
+            ExpressionAttributeValues={":video_code": {"S": video_code}},
+        )
+        if response["Items"]:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT, detail="Video already exists"
+            )
+
+        breakpoint()
+        sqs_client = clients.get_sqs_client()
+        sqs_client.send_message(
+            QueueUrl=settings.queue_url,
+            MessageBody=request.url,
+        )
 
     @router.get("/video")
-    async def list_videos() -> None:
-        raise NotImplementedError("finish this")
+    async def list_videos(
+        settings: Annotated[Settings, Depends(get_settings)],
+    ) -> list[VideoItem]:
+        dynamodb_client = clients.get_dynamodb_client()
+        response = dynamodb_client.scan(TableName=settings.table_name)
+        return [
+            VideoItem(
+                video_hash=item["video_hash"]["S"],
+                video_code=item["video_code"]["S"],
+                name=item["name"]["S"],
+            )
+            for item in response["Items"]
+        ]
 
-    @router.get("/video/{video_id}")
-    async def get_video(video_id: str) -> None:
-        raise NotImplementedError("finish this")
+    @router.get("/video/{video_hash}")
+    async def get_video(
+        video_hash: str, settings: Annotated[Settings, Depends(get_settings)]
+    ) -> StreamingResponse:
+        s3_client = clients.get_s3_client()
+        try:
+            response = s3_client.get_object(
+                Bucket=settings.bucket_name,
+                Key=video_hash,
+            )
+        except botocore.errorfactory.NoSuchKey:
+            raise HTTPException(status_code=404, detail="Video not found")
+
+        return StreamingResponse(response["Body"], media_type="video/mp4")
 
     return router

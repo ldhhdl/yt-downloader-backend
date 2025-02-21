@@ -8,6 +8,7 @@ dependencies = [
     "boto3>=1.36.25",
     "fastapi[standard]>=0.115.8",
     "hypercorn>=0.17.3",
+    "pydantic-settings>=2.8.0",
 ]
 
 [dependency-groups]
