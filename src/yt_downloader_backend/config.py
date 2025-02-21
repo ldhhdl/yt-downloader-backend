@@ -8,7 +8,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8")
 
     bucket_name: str
-    queue_url: str
+    download_queue_url: str
+    delete_queue_url: str
     table_name: str
     aws_region: str
     aws_access_key_id: Secret[str]

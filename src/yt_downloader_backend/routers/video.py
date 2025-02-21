@@ -6,7 +6,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 
 from yt_downloader_backend import clients
-from yt_downloader_backend.api_models import DownloadVideoRequest, VideoItem
+from yt_downloader_backend.api_models import (
+    DeleteVideoRequest,
+    DownloadVideoRequest,
+    VideoItem,
+)
 from yt_downloader_backend.config import Settings, get_settings
 
 
@@ -29,7 +33,7 @@ def _check_already_exists(table_name: str, video_code: str) -> bool:
     return bool(response["Items"])
 
 
-def _queue_video_download(queue_url: str, url: str) -> None:
+def _send_message_to_queue(queue_url: str, url: str) -> None:
     sqs_client = clients.get_sqs_client()
     sqs_client.send_message(
         QueueUrl=queue_url,
@@ -40,7 +44,7 @@ def _queue_video_download(queue_url: str, url: str) -> None:
 def get_router() -> APIRouter:
     router = APIRouter()
 
-    @router.post("/video", status_code=status.HTTP_201_CREATED)
+    @router.post("/video", status_code=status.HTTP_204_NO_CONTENT)
     async def download_video(
         request: DownloadVideoRequest,
         settings: Annotated[Settings, Depends(get_settings)],
@@ -50,7 +54,19 @@ def get_router() -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail="Video already exists"
             )
-        _queue_video_download(settings.queue_url, request.url)
+        _send_message_to_queue(settings.download_queue_url, request.url)
+
+    @router.delete("/video", status_code=status.HTTP_204_NO_CONTENT)
+    async def delete_video(
+        request: DeleteVideoRequest,
+        settings: Annotated[Settings, Depends(get_settings)],
+    ) -> None:
+        video_code = _get_video_code(request.url)
+        if not _check_already_exists(settings.table_name, video_code):
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Video not found"
+            )
+        _send_message_to_queue(settings.delete_queue_url, request.url)
 
     @router.get("/video")
     async def list_videos(
