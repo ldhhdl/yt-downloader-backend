@@ -28,4 +28,4 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
-CMD ["uv", "run", "src/yt_downloader_backend", "--host", "0.0.0.0", "--port", "80"]
+CMD ["uv", "run", "yt-downloader-backend", "--host", "0.0.0.0", "--port", "80"]

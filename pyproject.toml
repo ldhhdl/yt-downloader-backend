@@ -21,3 +21,10 @@ dev = [
 
 [tool.mypy]
 plugins = ['pydantic.mypy']
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+yt-downloader-backend = "yt_downloader_backend.__main__:main"
