@@ -16,6 +16,8 @@ dev = [
     "boto3-stubs>=1.36.26",
     "mypy>=1.15.0",
     "pre-commit>=4.1.0",
+    "pytest>=8.3.4",
+    "pytest-mock>=3.14.0",
     "ruff>=0.9.7",
 ]
 
