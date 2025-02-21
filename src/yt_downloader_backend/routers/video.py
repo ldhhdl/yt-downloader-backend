@@ -10,6 +10,33 @@ from yt_downloader_backend.api_models import DownloadVideoRequest, VideoItem
 from yt_downloader_backend.config import Settings, get_settings
 
 
+def _get_video_code(url: str) -> str:
+    video_code = parse_qs(urlparse(url).query).get("v", [""])[0]
+    if not video_code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid URL"
+        )
+    return video_code
+
+
+def _check_already_exists(table_name: str, video_code: str) -> bool:
+    dynamodb_client = clients.get_dynamodb_client()
+    response = dynamodb_client.query(
+        TableName=table_name,
+        KeyConditionExpression="video_code = :video_code",
+        ExpressionAttributeValues={":video_code": {"S": video_code}},
+    )
+    return bool(response["Items"])
+
+
+def _queue_video_download(queue_url: str, url: str) -> None:
+    sqs_client = clients.get_sqs_client()
+    sqs_client.send_message(
+        QueueUrl=queue_url,
+        MessageBody=url,
+    )
+
+
 def get_router() -> APIRouter:
     router = APIRouter()
 
@@ -18,28 +45,12 @@ def get_router() -> APIRouter:
         request: DownloadVideoRequest,
         settings: Annotated[Settings, Depends(get_settings)],
     ) -> None:
-        video_code = parse_qs(urlparse(request.url).query).get("v", [""])[0]
-        if not video_code:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid URL"
-            )
-
-        dynamodb_client = clients.get_dynamodb_client()
-        response = dynamodb_client.query(
-            TableName=settings.table_name,
-            KeyConditionExpression="video_code = :video_code",
-            ExpressionAttributeValues={":video_code": {"S": video_code}},
-        )
-        if response["Items"]:
+        video_code = _get_video_code(request.url)
+        if _check_already_exists(settings.table_name, video_code):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT, detail="Video already exists"
             )
-
-        sqs_client = clients.get_sqs_client()
-        sqs_client.send_message(
-            QueueUrl=settings.queue_url,
-            MessageBody=request.url,
-        )
+        _queue_video_download(settings.queue_url, request.url)
 
     @router.get("/video")
     async def list_videos(
@@ -70,7 +81,9 @@ def get_router() -> APIRouter:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND, detail="Video not found"
             )
-
         return StreamingResponse(response["Body"], media_type="video/mp4")
 
     return router
+
+
+__all__ = ["get_router"]
