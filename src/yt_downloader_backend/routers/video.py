@@ -1,7 +1,6 @@
-
 from fastapi import APIRouter
 
-from yt_downloader_backend.requests import DownloadVideoRequest
+from yt_downloader_backend.api_models import DownloadVideoRequest
 
 
 def get_router() -> APIRouter:
