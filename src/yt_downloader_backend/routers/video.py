@@ -13,7 +13,7 @@ from yt_downloader_backend.config import Settings, get_settings
 def get_router() -> APIRouter:
     router = APIRouter()
 
-    @router.post("/video", status_code=201)
+    @router.post("/video", status_code=status.HTTP_201_CREATED)
     async def download_video(
         request: DownloadVideoRequest,
         settings: Annotated[Settings, Depends(get_settings)],
@@ -35,7 +35,6 @@ def get_router() -> APIRouter:
                 status_code=status.HTTP_409_CONFLICT, detail="Video already exists"
             )
 
-        breakpoint()
         sqs_client = clients.get_sqs_client()
         sqs_client.send_message(
             QueueUrl=settings.queue_url,
@@ -50,8 +49,8 @@ def get_router() -> APIRouter:
         response = dynamodb_client.scan(TableName=settings.table_name)
         return [
             VideoItem(
-                video_hash=item["video_hash"]["S"],
                 video_code=item["video_code"]["S"],
+                video_hash=item["video_hash"]["S"],
                 name=item["name"]["S"],
             )
             for item in response["Items"]
@@ -68,7 +67,9 @@ def get_router() -> APIRouter:
                 Key=video_hash,
             )
         except botocore.errorfactory.NoSuchKey:
-            raise HTTPException(status_code=404, detail="Video not found")
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND, detail="Video not found"
+            )
 
         return StreamingResponse(response["Body"], media_type="video/mp4")
 
